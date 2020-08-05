@@ -9,7 +9,7 @@ const jwt = require("jsonwebtoken");
 exports.signUp = async (req, res, next) => {
   let email = req.body.email;
   let passwd = req.body.passwd;
-
+  let age = req.body.age;
   const hashedPasswd = await bcrypt.hash(passwd, 8);
 
   // 이메일이 정상적인가 체크
@@ -18,8 +18,8 @@ exports.signUp = async (req, res, next) => {
     return;
   }
   // 유저 인서트
-  let query = "insert into book_user (email, passwd) values ? ";
-  let data = [email, hashedPasswd];
+  let query = "insert into book_user (email, passwd,age) values ? ";
+  let data = [email, hashedPasswd, age];
   let user_id;
   try {
     [result] = await connection.query(query, [[data]]);
