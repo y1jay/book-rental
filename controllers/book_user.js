@@ -49,3 +49,69 @@ exports.signUp = async (req, res, next) => {
     res.status(500).json({ success: false, error: e });
   }
 };
+
+// @desc   로그인
+// @route   POST /api/v1/book_user/login
+// @paramaeters  email, passwd
+// async 는 동시에 처리할 수 있게해라
+exports.Loginbook_lental = async (req, res, next) => {
+  let email = req.body.email;
+  let passwd = req.body.passwd;
+
+  let query = `select * from book_user where email ="${email}"`;
+
+  try {
+    [rows] = await connection.query(query);
+
+    // 비밀번호 체크 : 비밀번호가 서로 맞는지 확인
+    let savedPasswd = rows[0].passwd;
+
+    const isMatch = await bcrypt.compare(passwd, savedPasswd);
+    if (isMatch == false) {
+      res.status(400).json({ succese: false, result: isMatch });
+      return;
+    }
+    let token = jwt.sign(
+      { user_id: rows[0].id },
+      process.env.ACCESS_TOKEN_SECRET
+    );
+    query = `insert into book_user_token (token,user_id) values(?,?)`;
+
+    let data = [token, rows[0].id];
+    try {
+      [result] = await connection.query(query, data);
+      res.status(200).json({ succese: true, result: isMatch, token: token });
+      return;
+    } catch {
+      res.status(500).json({ error: e });
+      return;
+    }
+  } catch {
+    res.status(500).json({ error: e });
+  }
+};
+
+// @ desc   로그아웃 api: DB에서 해당 유저의 현재 토큰값을 삭제
+// @ route  POST /api/v1/book_user/Logout
+// @parameters  X
+
+exports.Logout = async (req, res, next) => {
+  // 토큰테이블에서, 현재 이 헤더에 있는 토큰으로, 삭제한다.
+  let token = req.user.token;
+  let user_id = req.user.id;
+  let query = `delete from book_user_token where user_id = ${user_id} and token = "${token}"`;
+
+  try {
+    [result] = await connection.query(query);
+    if (result.affectedRows == 1) {
+      res.status(200).json({ succese: true, result: result });
+      return;
+    } else {
+      res.status(400).json({ succese: false });
+      return;
+    }
+  } catch (e) {
+    res.status(500).json({ succese: false, error: e });
+    return;
+  }
+};
