@@ -50,3 +50,24 @@ exports.rental_book = async (req, res, next) => {
     res.status(500).json({ error: "DB에러" });
   }
 };
+
+//@ desc   내가 대여한 책 목록 불러오는 API 25개씩
+//@ route  GET/api/v1/books/my_rental
+//@ params user_id
+
+exports.my_rental = async (req, res, next) => {
+  let user_id = req.user.id;
+  let offset = req.query.offset;
+
+  let query = `select * from book as b 
+    join book_rental as br
+     on b.id = br.book_id 
+     where br.user_id = ${user_id} limit ${offset},25`;
+
+  try {
+    [rows] = await connection.query(query);
+    res.status(200).json({ message: "회원님이 대여하신 책 목록", rows: rows });
+  } catch (e) {
+    res.status(500).json({ error: e });
+  }
+};
