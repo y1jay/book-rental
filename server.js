@@ -6,8 +6,9 @@ const app = express();
 app.use(express.json());
 
 const book_user = require("./routes/book_user");
-
+const books = require("./routes/book_rental");
 app.use("/api/v1/book_user", book_user);
+app.use("/api/v1/books", books);
 
 const PORT = process.env.PORT || 5700;
 
