@@ -10,6 +10,7 @@ exports.get_book = async (req, res, next) => {
   try {
     [rows] = await connection.query(query);
     res.status(200).json({ message: "책 목록", rows: rows });
+    return;
   } catch (e) {
     res.status(500).json({ error: e });
   }
@@ -53,7 +54,7 @@ exports.rental_book = async (req, res, next) => {
 
 //@ desc   내가 대여한 책 목록 불러오는 API 25개씩
 //@ route  GET/api/v1/books/my_rental
-//@ params user_id
+//@ params user_id, offset
 
 exports.my_rental = async (req, res, next) => {
   let user_id = req.user.id;
@@ -67,6 +68,27 @@ exports.my_rental = async (req, res, next) => {
   try {
     [rows] = await connection.query(query);
     res.status(200).json({ message: "회원님이 대여하신 책 목록", rows: rows });
+    return;
+  } catch (e) {
+    res.status(500).json({ error: e });
+  }
+};
+
+//@desc    대여한 책 반납하는 API
+//@route   DELETE/api/v1/books/:id
+//@params  user_id,book_id
+
+exports.return_book = async (req, res, next) => {
+  let user_id = req.user.id;
+  let book_id = req.params.id;
+
+  let query = `delete from book_rental 
+    where user_id = ${user_id} and book_id = ${book_id}`;
+
+  try {
+    [result] = await connection.query(query);
+    res.status(200).json({ message: "반납이 완료되었습니다.", result: result });
+    return;
   } catch (e) {
     res.status(500).json({ error: e });
   }
